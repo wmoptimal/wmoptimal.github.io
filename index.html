@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CADRE rollouts</title>
+<meta name="description" content="Qualitative world-model rollouts for “How Should Autoencoders Compress for Interactive World Models?”">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,300..800;1,62..125,400&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<nav class="rail" aria-label="Sections">
+  <a href="#top" class="rail-home">CADRE</a>
+  <a href="#controls"><span>2</span>Latency</a>
+  <a href="#envs"><span>5</span>Rollouts</a>
+  <a href="#decoder"><span>5.1</span>Decoder</a>
+  <a href="#baselines"><span>5.2</span>Baselines</a>
+  <a href="#actions"><span>I</span>Counterfactuals</a>
+  <a href="#placement"><span>6.1</span>AE or WM</a>
+  <a href="#tau"><span>6.2</span>Frames per latent</a>
+  <a href="#spatial"><span>6.3</span>Spatial tokens</a>
+  <a href="#long"><span>G</span>64 seconds</a>
+</nav>
+
+<header class="hero" id="top">
+  <div class="hero-text">
+    <h1>How should autoencoders compress for interactive world models?</h1>
+    <p class="byline">Anonymous authors, under review for ICLR 2027</p>
+  </div>
+
+  <div class="hero-reel" id="hero-reel"></div>
+  <p class="hero-hint">Drag the divider on any video to compare the <span class="key real">real</span> future with the <span class="key gen">generated</span> one.</p>
+
+  <div class="hero-lede">
+    <p>Video world models generate in the latent space of an autoencoder. Its compression sets the cost of every frame and how long each action waits
+      to take effect. We built <b>CADRE</b>, an open family of causal diffusion representation autoencoders that covers seven spatio-temporal compressions, and trained the same
+      world model on each in four environments.</p>
+    <p>Below are rollouts in the order of the paper. Each one starts from 2&nbsp;s of real video. The world model then generates 4.8&nbsp;s from the
+      recorded actions alone, at 20 frames per second. <span class="key gen">Blue</span> marks generated video, <span class="key real">ochre</span> real video.</p>
+  </div>
+</header>
+
+<main>
+
+<section id="controls" class="sec">
+  <header class="sec-head">
+    <span class="sec-no">§2</span>
+    <div class="sec-body">
+      <h2>A latent frame waits for all its actions</h2>
+      <p>The autoencoder compresses a clip by <i>τ</i> in time and <i>s</i> in space. A latent frame covers <i>τ</i> video frames, so the world model can predict it only once
+        all <i>τ</i> actions are known. The first action of each chunk waits <i>τ/f</i>, then one world-model call and one decode.</p>
+    </div>
+  </header>
+  <div class="plate chunk" id="chunk-demo">
+    <div class="chunk-head">
+      <div class="tabs" id="tau-pick" role="group" aria-label="Frames per latent"></div>
+      <dl class="lat">
+        <div><dt>Waiting for the chunk</dt><dd id="lat-wait">–</dd></div>
+        <div><dt>World model and decode</dt><dd id="lat-gen">–</dd></div>
+        <div class="tot"><dt>Action latency</dt><dd id="lat-tot">–</dd></div>
+      </dl>
+    </div>
+    <div class="chunk-rows">
+      <span class="row-lab">Actions in</span><div class="lane" id="lane-act"></div>
+      <span class="row-lab">Latent frames</span><div class="lane" id="lane-lat"></div>
+      <span class="row-lab">Frames out</span><div class="lane" id="lane-dec"></div>
+    </div>
+    <div class="lat-bar" aria-hidden="true"><i class="w" id="bar-wait"></i><i class="g" id="bar-gen"></i></div>
+    <p class="note">CADRE at <i>s</i>&nbsp;=&nbsp;16, two decoding steps, measured on one H100 at 20&nbsp;fps with 10 world-model steps. A larger <i>τ</i> means fewer world-model
+      calls and higher throughput, but every action waits longer.</p>
+  </div>
+</section>
+
+<section id="envs" class="sec">
+  <header class="sec-head">
+    <span class="sec-no">§5</span>
+    <div class="sec-body">
+      <h2>Four environments, generated in real time</h2>
+      <p>We use two manipulation environments with a still camera, a robot and human hands, and two navigation environments with a moving camera, driving and indoor.
+        On one H100 the world models on CADRE generate 22 to 39 frames per second, more than the 20 they display. The first clip in each environment is the one in the paper's figure.</p>
+    </div>
+  </header>
+  <div class="tabs big" id="env-tabs" role="tablist"></div>
+  <div id="env-player"></div>
+  <div class="strip" id="env-thumbs"></div>
+</section>
+
+<section id="decoder" class="sec">
+  <header class="sec-head">
+    <span class="sec-no">§5.1</span>
+    <div class="sec-body">
+      <h2>A compressed latent needs a diffusion decoder</h2>
+      <p>A strongly compressed latent fits many videos. MIRA's perceptual regression decoder returns their blurry average. CADRE's diffusion decoder samples one
+        sharp video, in one or two steps thanks to self-distillation. Both compress by 2×32×32. Drag the divider to compare them.</p>
+    </div>
+    <aside class="margin-note"><b>Decode a compressed latent by diffusion.</b> In one step it runs as fast as regression, with 1.4 to 2.5× lower FVD and similar action following. A second step helps further.</aside>
+  </header>
+  <div class="tabs" id="dec-tabs"></div>
+  <div id="dec-player"></div>
+</section>
+
+<section id="baselines" class="sec">
+  <header class="sec-head">
+    <span class="sec-no">§5.2</span>
+    <div class="sec-body">
+      <h2>Off-the-shelf autoencoders break when the camera moves</h2>
+      <p>The world model is identical in every panel. Only the latent changes. With a moving camera, Wan&nbsp;2.2 and LTX-2 dissolve into texture, Cosmos leaves ghosts and
+        MIRA blurs. With a still camera most of them look alike. Under each panel are that autoencoder's FVD in this environment and its measured action latency.</p>
+    </div>
+  </header>
+  <div class="tabs" id="bl-tabs"></div>
+  <div id="bl-player"></div>
+</section>
+
+<section id="actions" class="sec">
+  <header class="sec-head">
+    <span class="sec-no">App.&nbsp;I</span>
+    <div class="sec-body">
+      <h2>One context, several futures</h2>
+      <p>Each rollout starts from the same real context, then follows either the recorded actions or a sequence never recorded with that context: no motion,
+        another clip's actions, or a constant left or right turn. The futures split when the context ends.</p>
+    </div>
+  </header>
+  <div class="tabs" id="cf-tabs"></div>
+  <div id="cf-player"></div>
+</section>
+
+<section id="placement" class="sec">
+  <header class="sec-head">
+    <span class="sec-no">§6.1</span>
+    <div class="sec-body">
+      <h2>Compress time in the autoencoder, not the world model</h2>
+      <p>Both routes reach the same token grid. The autoencoder route is a CADRE member that packs <i>τ</i> frames into each latent. The world-model route keeps the per-frame latent of
+        CADRE-1×16×16 and patches it by <i>τ</i> inside the world model. Switch on the error map to see where each rollout departs from the real robot.</p>
+    </div>
+    <aside class="margin-note"><b>Let the autoencoder compress in time.</b> At the same token count its frames look sharper and move more realistically, with similar action following.
+      It learns to reconstruct pixels, while the world model keeps only what helps it predict.</aside>
+  </header>
+  <div class="controls">
+    <div class="tabs" id="pl-tau"></div>
+    <div class="tabs" id="pl-ep"></div>
+    <label class="switch"><input type="checkbox" id="pl-err"><span></span>Error map</label>
+  </div>
+  <div id="pl-player"></div>
+</section>
+
+<section id="tau" class="sec">
+  <header class="sec-head">
+    <span class="sec-no">§6.2</span>
+    <div class="sec-body">
+      <h2>Long latents are free with a still camera, and seam with a moving one</h2>
+      <p>Every rollout here uses the same fine token, <i>s</i>&nbsp;=&nbsp;16, and only the number of frames per latent changes. The plot tracks how much each generated frame differs
+        from the previous one. The ticks mark chunk boundaries for the <i>τ</i> you point at. With a moving camera the change piles up on those boundaries as <i>τ</i> grows.</p>
+    </div>
+    <aside class="margin-note"><b>Manipulation and navigation call for opposite compressions.</b> A still camera makes content redundant over time, so long latents are cheap.
+      A moving camera brings new content every frame, so long latents seam, while coarse spatial tokens cost little.</aside>
+  </header>
+  <div class="tabs" id="tau-tabs"></div>
+  <div id="tau-player"></div>
+</section>
+
+<section id="spatial" class="sec">
+  <header class="sec-head">
+    <span class="sec-no">§6.3</span>
+    <div class="sec-body">
+      <h2>Coarser tokens keep frames sharp but lose the motion</h2>
+      <p>Both rollouts pack the same number of frames per latent. The coarse one also compresses more in space. Each frame is just as sharp, but the arms drift from
+        where the actions put them. FVD roughly doubles, while FID moves far less.</p>
+    </div>
+    <aside class="margin-note"><b>Coarser tokens hurt motion and action following far more than image quality.</b> This is strongest in manipulation, where the action happens in a small region that stays in view.</aside>
+  </header>
+  <div class="controls">
+    <div class="tabs" id="sp-pair"></div>
+    <div class="tabs" id="sp-ep"></div>
+    <label class="switch"><input type="checkbox" id="sp-err" checked><span></span>Error map</label>
+  </div>
+  <div id="sp-player"></div>
+</section>
+
+<section id="long" class="sec">
+  <header class="sec-head">
+    <span class="sec-no">App.&nbsp;G</span>
+    <div class="sec-body">
+      <h2>Sixty-four seconds of robot manipulation</h2>
+      <p>This uses the same protocol, run for 1280 generated frames. CADRE degrades smoothly. Wan&nbsp;2.2 starts near the reconstruction regime, but its colours saturate after about
+        half a minute. MIRA's blur grows into dark blobs. Under each panel is its FVD at 64&nbsp;s.</p>
+    </div>
+  </header>
+  <div class="controls">
+    <div class="tabs" id="lg-ep"></div>
+    <div class="tabs" id="lg-speed"></div>
+  </div>
+  <div id="lg-player"></div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <p>Every sample comes from a held-out episode: 40 real frames of context and 96 generated frames at 20 fps and 288×512, unless stated otherwise.
+    Metrics come from the paper's evaluation on 2048 clips per environment. We will release our code and trained models.</p>
+</footer>
+
+<script src="assets/data.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
