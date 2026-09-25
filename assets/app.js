@@ -32,11 +32,6 @@
     pause() { for (const v of this.v) v.pause(); this.emit(this.v[0] ? this.v[0].currentTime : 0); }
     seek(t) { for (const v of this.v) { try { v.currentTime = t; } catch (_) {} } this.emit(t); }
     setRate(r) { this.rate = r; for (const v of this.v) v.playbackRate = r; }
-    swap(v, src) {   // change one follower's source while keeping the clock
-      const m = this.v[0]; v.dataset.src = src;
-      if (!v.getAttribute("src")) return;
-      v.src = src; v.addEventListener("loadeddata", () => { try { v.currentTime = m.currentTime; } catch (_) {} if (!m.paused) v.play().catch(() => {}); }, { once: true });
-    }
     loop() {
       if (this.raf) return;
       const step = () => {
@@ -87,10 +82,11 @@
     return b;
   }
 
-  function tile(sync, { src, label, cls = "", badges = [], missing = null, sub = null }) {
+  function tile(sync, { src, alt = null, label, cls = "", badges = [], missing = null, sub = null }) {
     if (missing) return h("div", { class: "tile missing" }, h("div", { class: "frame" }, missing), h("div", { class: "cap" }, h("span", { class: "name" }, label)));
     const v = sync.add(video(src));
     const fr = h("div", { class: "frame" }, v, phaseBadge(sync, /\breal\b/.test(cls)));
+    if (alt) { const a = sync.add(video(alt)); a.classList.add("alt"); a.removeAttribute("poster"); fr.insertBefore(a, v.nextSibling); }
     fr.addEventListener("click", () => toggle(sync));
     const t = h("div", { class: "tile " + cls }, fr, h("div", { class: "cap" }, h("span", { class: "name" }, label), sub, ...badges));
     t._video = v;
@@ -333,15 +329,16 @@
       player.innerHTML = "";
       const sync = new Sync();
       const realT = tile(sync, { src: g.real, label: "Real", cls: "real" });
-      const aT = tile(sync, { src: err.checked ? ae.diff : ae.src, label: `Autoencoder packs ${tau} frames`, cls: "ours", badges: metricBadges(ae, { fid: true, arr: true, lat: false, fvdBest: Math.min(ae.fvd, wm.fvd) }) });
-      const wT = tile(sync, { src: err.checked ? wm.diff : wm.src, label: `World model patches ${tau} frames`, badges: metricBadges(wm, { fid: true, arr: true, lat: false, fvdBest: Math.min(ae.fvd, wm.fvd) }) });
+      const aT = tile(sync, { src: ae.src, alt: ae.diff, label: `Autoencoder packs ${tau} frames`, cls: "ours", badges: metricBadges(ae, { fid: true, arr: true, lat: false, fvdBest: Math.min(ae.fvd, wm.fvd) }) });
+      const wT = tile(sync, { src: wm.src, alt: wm.diff, label: `World model patches ${tau} frames`, badges: metricBadges(wm, { fid: true, arr: true, lat: false, fvdBest: Math.min(ae.fvd, wm.fvd) }) });
       player.append(h("div", { class: "grid g3" }, realT, aT, wT), transport(sync));
-      cur = { sync, pairs: [[aT._video, ae], [wT._video, wm]] };
+      cur = [aT, wT]; setErr();
       mount(player, sync);
     }
     chips($("#pl-tau"), [2, 4, 8].map((t) => ({ label: `τ = ${t}` })), 0, (i) => { tau = [2, 4, 8][i]; show(); });
     chips($("#pl-ep"), D.placement.map((g) => ({ label: g.tag })), 0, (i) => { ep = i; show(); });
-    err.onchange = () => { for (const [v, it] of cur.pairs) cur.sync.swap(v, err.checked ? it.diff : it.src); };
+    const setErr = () => { for (const t of cur) t.querySelector(".frame").classList.toggle("show-alt", err.checked); };
+    err.onchange = setErr;
     show();
   })();
 
@@ -418,16 +415,17 @@
       const sync = new Sync();
       const realT = tile(sync, { src: g.real, label: "Real", cls: "real" });
       const best = Math.min(fine.fvd, coarse.fvd);
-      const fT = tile(sync, { src: err.checked ? fine.diff : fine.src, label: fine.label, cls: "ours", badges: metricBadges(fine, { fid: true, arr: true, lat: false, fvdBest: best }) });
-      const cT = tile(sync, { src: err.checked ? coarse.diff : coarse.src, label: coarse.label, badges: metricBadges(coarse, { fid: true, arr: true, lat: false, fvdBest: best }) });
+      const fT = tile(sync, { src: fine.src, alt: fine.diff, label: fine.label, cls: "ours", badges: metricBadges(fine, { fid: true, arr: true, lat: false, fvdBest: best }) });
+      const cT = tile(sync, { src: coarse.src, alt: coarse.diff, label: coarse.label, badges: metricBadges(coarse, { fid: true, arr: true, lat: false, fvdBest: best }) });
       player.append(h("div", { class: "grid g3" }, realT, fT, cT), transport(sync),
         h("p", { class: "note" }, "One-step decode. The error map is |generated − real|, amplified 3×. Bright regions mark where the rollout departs from the recorded future."));
-      cur = { sync, pairs: [[fT._video, fine], [cT._video, coarse]] };
+      cur = [fT, cT]; setErr();
       mount(player, sync);
     }
     chips($("#sp-pair"), [{ label: "τ = 4, s = 16 or 24" }, { label: "τ = 2, s = 16 or 32" }], 0, (i) => { pair = i; show(); });
     chips($("#sp-ep"), D.spatial.map((g) => ({ label: g.tag })), 0, (i) => { ep = i; show(); });
-    err.onchange = () => { for (const [v, it] of cur.pairs) cur.sync.swap(v, err.checked ? it.diff : it.src); };
+    const setErr = () => { for (const t of cur) t.querySelector(".frame").classList.toggle("show-alt", err.checked); };
+    err.onchange = setErr;
     show();
   })();
 
