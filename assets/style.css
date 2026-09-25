@@ -102,6 +102,9 @@ main, .hero, .foot { margin-left: var(--rail); }
 .g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .g4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .tile { position: relative; min-width: 0; }
+/* sources are 512x288: keep single large panels near native size (<= 1.4x), two-up grids <= ~1.15x */
+.tile.big { max-width: 704px; }
+.hero-reel, #env-player .g2, .cf-wrap { max-width: 1180px; }
 .frame { position: relative; aspect-ratio: 16 / 9; background: #000; overflow: hidden; border-top: 3px solid var(--base); cursor: pointer; }
 .tile.ours .frame { border-top-color: var(--gen); }
 .tile.real .frame { border-top-color: var(--real); }

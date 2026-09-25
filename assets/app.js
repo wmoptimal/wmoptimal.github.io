@@ -258,7 +258,7 @@
       const sync = new Sync();
       const realT = tile(sync, { src: g.real, label: "Real", cls: "real" });
       const big = wipe(sync, { base: mira.src, over: two.src, lBase: "MIRA, regression", lOver: "CADRE, diffusion in 2 steps", start: 50 });
-      const bigT = h("div", { class: "tile" }, big, h("div", { class: "cap" }, h("span", { class: "name" }, `${ENV[g.env]}, both at 2×32×32`),
+      const bigT = h("div", { class: "tile big" }, big, h("div", { class: "cap" }, h("span", { class: "name" }, `${ENV[g.env]}, both at 2×32×32`),
         badge(`MIRA FVD ${mira.fvd.toFixed(0)}`, "worst"), badge(`CADRE FVD ${two.fvd.toFixed(0)}`, "best")));
       const row = h("div", { class: "grid g4", style: "margin-top:12px" }, realT,
         tile(sync, { src: mira.src, label: "MIRA, regression", badges: metricBadges(mira, { fid: true, lat: true }) }),
