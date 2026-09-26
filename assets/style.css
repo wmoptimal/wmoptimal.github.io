@@ -159,6 +159,7 @@ main, .hero, .foot { margin-left: var(--rail); }
 .thumb[aria-pressed="true"] { outline: 2px solid var(--gen); }
 .thumb span { position: absolute; left: 0; bottom: 0; font-size: 12px; font-weight: 600; font-variation-settings: "wdth" 72; color: #fff; background: rgba(0, 0, 0, .6); padding: 1px 6px 2px; }
 .thumb[aria-pressed="true"] span { background: var(--gen); }
+.strip.lib { grid-template-columns: repeat(5, minmax(0, 1fr)); max-width: 1180px; }
 
 /* chunk demo */
 .plate { background: var(--sheet); padding: 24px 26px 20px; }
@@ -231,7 +232,7 @@ main, .hero, .foot { margin-left: var(--rail); }
   .margin-note { grid-column: 1; }
   .g2, .hero-reel { grid-template-columns: 1fr; }
   .grid { gap: 16px 8px; }
-  .strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .strip, .strip.lib { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .chunk-rows { grid-template-columns: 1fr; gap: 4px; }
   .lat-bar { margin-left: 0; }
   .plate { padding: 18px 16px; }

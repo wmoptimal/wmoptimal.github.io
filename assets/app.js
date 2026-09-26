@@ -226,28 +226,43 @@
     ob.observe($("#chunk-demo"));
   })();
 
-  /* ------------------------------------------------------------------ environments */
-  (function envs() {
-    const tabs = $("#env-tabs"), player = $("#env-player"), thumbs = $("#env-thumbs");
-    let ei = 0, ci = 0;
+  // a generated/real pair with a thumbnail strip that switches between clips
+  function clipPlayer(player, thumbs, clips, thumbLabel) {
+    let ci = 0;
     function show() {
-      const e = D.envs[ei], c = e.clips[ci];
+      const c = clips[ci];
       player.innerHTML = "";
       const sync = new Sync();
       const real = tile(sync, { src: c.real, label: "Real", cls: "real" });
-      const gen = tile(sync, { src: c.roll, label: "Generated", cls: "ours", badges: [badge(`CADRE ${c.geo || e.geo}, 2 steps`)] });
+      const gen = tile(sync, { src: c.roll, label: "Generated", cls: "ours", badges: [badge(`CADRE ${c.geo}, 2 steps`)] });
       player.append(h("div", { class: "grid g2" }, gen, real), transport(sync));
       mount(player, sync);
       thumbs.innerHTML = "";
-      e.clips.forEach((cc, j) => {
+      clips.forEach((cc, j) => {
         const b = h("button", { class: "thumb", "aria-pressed": String(j === ci), "aria-label": `Clip ${j + 1}` },
-          h("img", { src: poster(cc.roll), alt: "", loading: "lazy" }), h("span", {}, j === 0 ? "paper's clip" : `clip ${j + 1}`));
+          h("img", { src: poster(cc.roll), alt: "", loading: "lazy" }), h("span", {}, thumbLabel(cc, j)));
         b.onclick = () => { ci = j; show(); };
         thumbs.append(b);
       });
     }
-    chips(tabs, D.envs.map((e) => ({ label: e.name })), 0, (i) => { ei = i; ci = 0; show(); });
     show();
+  }
+
+  /* ------------------------------------------------------------------ environments */
+  (function envs() {
+    const tabs = $("#env-tabs"), player = $("#env-player"), thumbs = $("#env-thumbs");
+    const show = (i) => { const e = D.envs[i];
+      clipPlayer(player, thumbs, e.clips.map((c) => ({ geo: e.geo, ...c })), (c, j) => j === 0 ? "paper's clip" : `clip ${j + 1}`); };
+    chips(tabs, D.envs.map((e) => ({ label: e.name })), 0, show);
+    show(0);
+  })();
+
+  /* ------------------------------------------------------------------ clip library */
+  (function library() {
+    const L = D.library;
+    if (!L) { $("#library").remove(); $(".rail a[href='#library']").remove(); return; }   // videos not fetched yet
+    clipPlayer($("#lib-player"), $("#lib-thumbs"), L.clips.map((c) => ({ geo: L.geo, ...c })),
+      (c, j) => c.featured ? "featured" : `clip ${j + 1}`);
   })();
 
   /* ------------------------------------------------------------------ decoder */
