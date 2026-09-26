@@ -63,6 +63,8 @@ main, .hero, .foot { margin-left: var(--rail); }
 
 .hero-reel { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 14px; }
 .hero-reel .frame { border-top-color: var(--gen); }
+.hero-claim { margin: 22px 0 0; max-width: 78ch; font-size: clamp(17px, 1.5vw, 20px); line-height: 1.5; color: var(--ink-2); font-variation-settings: "wdth" 95; }
+.hero-claim b { color: var(--ink); }
 .hero-hint { margin: 14px 0 0; font-size: 14.5px; color: var(--ink-3); font-variation-settings: "wdth" 88; }
 .corner.l2.real { background: var(--real); }
 
@@ -159,7 +161,16 @@ main, .hero, .foot { margin-left: var(--rail); }
 .thumb[aria-pressed="true"] { outline: 2px solid var(--gen); }
 .thumb span { position: absolute; left: 0; bottom: 0; font-size: 12px; font-weight: 600; font-variation-settings: "wdth" 72; color: #fff; background: rgba(0, 0, 0, .6); padding: 1px 6px 2px; }
 .thumb[aria-pressed="true"] span { background: var(--gen); }
-.strip.lib { grid-template-columns: repeat(5, minmax(0, 1fr)); max-width: 1180px; }
+
+/* clip library: one synced grid per environment */
+.lib-group + .lib-group { margin-top: 56px; }
+.lib-env { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 0 0 14px; font-size: clamp(18px, 1.8vw, 23px); font-weight: 650;
+  font-variation-settings: "wdth" 110; }
+.lib-env span { font-size: 14.5px; font-weight: 400; color: var(--ink-3); font-variation-settings: "wdth" 80; }
+.lib-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; max-width: 1180px; }
+.lib-grid.has-featured { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.lib-grid .featured { grid-column: span 3; grid-row: span 3; }
+.lib-grid .featured .frame { aspect-ratio: auto; height: 100%; }
 
 /* chunk demo */
 .plate { background: var(--sheet); padding: 24px 26px 20px; }
@@ -221,6 +232,9 @@ main, .hero, .foot { margin-left: var(--rail); }
   .hero-lede { grid-template-columns: 1fr; }
   .cf-wrap { grid-template-columns: 1fr; gap: 16px; }
   .cf-svg { display: none; }
+  .lib-grid, .lib-grid.has-featured { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lib-grid .featured { grid-column: span 2; grid-row: auto; }
+  .lib-grid .featured .frame { aspect-ratio: 16 / 9; height: auto; }
 }
 @media (max-width: 640px) {
   body { font-size: 16px; }
@@ -232,7 +246,7 @@ main, .hero, .foot { margin-left: var(--rail); }
   .margin-note { grid-column: 1; }
   .g2, .hero-reel { grid-template-columns: 1fr; }
   .grid { gap: 16px 8px; }
-  .strip, .strip.lib { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .chunk-rows { grid-template-columns: 1fr; gap: 4px; }
   .lat-bar { margin-left: 0; }
   .plate { padding: 18px 16px; }
