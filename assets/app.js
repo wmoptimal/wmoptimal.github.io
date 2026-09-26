@@ -182,10 +182,10 @@
   (function hero() {
     const root = $("#hero-reel");
     for (const e of D.envs) {
-      const c = e.clips[0], holder = h("div", { class: "tile ours" }), sync = new Sync();
+      const c = e.hero || e.clips[0], holder = h("div", { class: "tile ours" }), sync = new Sync();
       // wipe() adds the base (real) first, so the real clip is the clock
-      const fr = wipe(sync, { base: c.real, over: c.roll, lBase: "real", lOver: "generated", start: 50, sweep: true, cBase: "real" });
-      holder.append(fr, h("div", { class: "cap" }, h("span", { class: "name" }, e.name), badge(`CADRE ${e.geo}`)));
+      const fr = wipe(sync, { base: c.real, over: c.roll, lBase: "real", lOver: "world model", start: 50, sweep: true, cBase: "real" });
+      holder.append(fr, h("div", { class: "cap" }, h("span", { class: "name" }, e.name), badge(`CADRE ${c.geo || e.geo}`)));
       root.append(holder);
       mount(holder, sync);
     }
@@ -234,7 +234,7 @@
       player.innerHTML = "";
       const sync = new Sync();
       const real = tile(sync, { src: c.real, label: "Real", cls: "real" });
-      const gen = tile(sync, { src: c.roll, label: "Generated", cls: "ours", badges: [badge(`CADRE ${c.geo}, 2 steps`)] });
+      const gen = tile(sync, { src: c.roll, label: "World model rollout", cls: "ours", badges: [badge(`CADRE ${c.geo}, 2 steps`)] });
       player.append(h("div", { class: "grid g2" }, gen, real), transport(sync));
       mount(player, sync);
       thumbs.innerHTML = "";
@@ -258,12 +258,22 @@
   })();
 
   /* ------------------------------------------------------------------ clip library */
+  // one synced grid per environment, each playing while on screen; a featured clip takes a 3x3 block
   (function library() {
     if (!D.library) { $("#library").remove(); $(".rail a[href='#library']").remove(); return; }   // videos not fetched yet
-    const show = (i) => { const L = D.library[i];
-      clipPlayer($("#lib-player"), $("#lib-thumbs"), L.clips.map((c) => ({ geo: L.geo, ...c })), (c, j) => c.featured ? "featured" : `clip ${j + 1}`); };
-    chips($("#lib-tabs"), D.library.map((L) => ({ label: L.name })), 0, show);
-    show(0);
+    const root = $("#lib-groups");
+    for (const L of D.library) {
+      const sync = new Sync(), holder = h("div", { class: "lib-group" });
+      const tiles = L.clips.map((c) => {
+        const fr = h("div", { class: "frame" }, sync.add(video(c.roll)), phaseBadge(sync));
+        fr.addEventListener("click", () => toggle(sync));
+        return h("div", { class: "tile ours" + (c.featured ? " featured" : "") }, fr);
+      });
+      holder.append(h("h3", { class: "lib-env" }, L.name, h("span", {}, `CADRE ${L.geo}, 2 steps`)),
+        h("div", { class: "lib-grid" + (L.clips.some((c) => c.featured) ? " has-featured" : "") }, tiles), transport(sync));
+      root.append(holder);
+      mount(holder, sync);
+    }
   })();
 
   /* ------------------------------------------------------------------ decoder */
