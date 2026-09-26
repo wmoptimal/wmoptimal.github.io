@@ -139,7 +139,7 @@
     const lab = h("span", { class: "tlabel" });
     btn.onclick = () => toggle(sync);
     const dur = sync.frames / FPS;
-    let seeking = false;
+    let seeking = false, shown = null;   // shown: last icon state, so the svg isn't rebuilt mid-click
     const seekAt = (e) => { const r = scrub.getBoundingClientRect(); const k = Math.max(0, Math.min(.999, (e.clientX - r.left) / r.width)); sync.seek(k * dur); };
     scrub.addEventListener("pointerdown", (e) => { seeking = true; scrub.setPointerCapture(e.pointerId); sync.pause(); seekAt(e); });
     scrub.addEventListener("pointermove", (e) => { if (seeking) seekAt(e); });
@@ -154,7 +154,8 @@
       head.style.left = k + "%"; fc.style.width = Math.min(k, ctxW) + "%"; fg.style.width = Math.max(0, k - ctxW) + "%";
       const f = Math.min(sync.frames - 1, Math.floor(t * FPS + 1e-3));
       lab.textContent = f < sync.ctx ? `context frame ${f + 1} of ${sync.ctx}` : `generated ${((f - sync.ctx + 1) / FPS).toFixed(2)} s`;
-      btn.innerHTML = sync.v[0].paused ? ICON_PLAY : ICON_PAUSE;
+      const paused = sync.v[0].paused;
+      if (paused !== shown) { shown = paused; btn.innerHTML = paused ? ICON_PLAY : ICON_PAUSE; }
     });
     return h("div", { class: "transport" }, btn, scrub, lab);
   }
