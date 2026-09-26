@@ -259,10 +259,11 @@
 
   /* ------------------------------------------------------------------ clip library */
   (function library() {
-    const L = D.library;
-    if (!L) { $("#library").remove(); $(".rail a[href='#library']").remove(); return; }   // videos not fetched yet
-    clipPlayer($("#lib-player"), $("#lib-thumbs"), L.clips.map((c) => ({ geo: L.geo, ...c })),
-      (c, j) => c.featured ? "featured" : `clip ${j + 1}`);
+    if (!D.library) { $("#library").remove(); $(".rail a[href='#library']").remove(); return; }   // videos not fetched yet
+    const show = (i) => { const L = D.library[i];
+      clipPlayer($("#lib-player"), $("#lib-thumbs"), L.clips.map((c) => ({ geo: L.geo, ...c })), (c, j) => c.featured ? "featured" : `clip ${j + 1}`); };
+    chips($("#lib-tabs"), D.library.map((L) => ({ label: L.name })), 0, show);
+    show(0);
   })();
 
   /* ------------------------------------------------------------------ decoder */
