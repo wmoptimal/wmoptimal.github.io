@@ -193,7 +193,7 @@
 
   /* ------------------------------------------------------------------ chunk demo */
   (function chunkDemo() {
-    const LAT = { 1: 226, 2: 269, 4: 379, 8: 606 }, N = 24;
+    const LAT = { 1: 200, 2: 240, 4: 337, 8: 538 }, N = 24;   // paper Table 4, s = 16, two decoding steps
     const pick = $("#tau-pick"), la = $("#lane-act"), ll = $("#lane-lat"), ld = $("#lane-dec");
     let tau = 4, f = 0, timer = null;
     const acts = [], decs = [];
@@ -206,7 +206,7 @@
       $("#bar-wait").style.width = `${100 * wait / 650}%`; $("#bar-gen").style.width = `${100 * gen / 650}%`;
       f = 0;
     }
-    const COMP = 3;   // world model + decode, in frame ticks (~170 ms at 20 fps)
+    const COMP = 3;   // world model + decode, in frame ticks (~150 ms at 20 fps)
     function tick() {
       const blocks = ll.children;
       acts.forEach((a, i) => { a.classList.toggle("on", i <= f); a.classList.toggle("now", i === f); });
@@ -241,7 +241,7 @@
       thumbs.innerHTML = "";
       e.clips.forEach((cc, j) => {
         const b = h("button", { class: "thumb", "aria-pressed": String(j === ci), "aria-label": `Clip ${j + 1}` },
-          h("img", { src: poster(cc.roll), alt: "", loading: "lazy" }), h("span", {}, j === 0 ? "paper figure" : `clip ${j + 1}`));
+          h("img", { src: poster(cc.roll), alt: "", loading: "lazy" }), h("span", {}, j === 0 ? "paper's clip" : `clip ${j + 1}`));
         b.onclick = () => { ci = j; show(); };
         thumbs.append(b);
       });
@@ -284,7 +284,7 @@
       const tiles = [tile(sync, { src: g.real, label: "Real", cls: "real" })];
       for (const it of g.items) {
         tiles.push(it.missing
-          ? tile(sync, { label: it.label, missing: g.env === "egodex" ? "not trained on EgoDex" : "no sample of this episode" })
+          ? tile(sync, { label: it.label, missing: "no sample of this episode" })
           : tile(sync, { src: it.src, label: it.label.replace(", 2 steps", ""), cls: isOurs(it) ? "ours" : "", badges: metricBadges(it, { fvdBest: best }) }));
       }
       player.append(h("div", { class: "grid g4" }, tiles), transport(sync));
